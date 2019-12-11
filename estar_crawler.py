@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import re
 from tqdm import tqdm
+import time
 
 #helpers
 def remove_tags(soup):
@@ -145,6 +146,7 @@ def bind_book(url):
 
         current_page += 1
         progress_bar.update(1)
+        time.sleep(1)
 
     progress_bar.close()
     write_to_file(title, html_close)
