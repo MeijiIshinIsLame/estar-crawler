@@ -18,8 +18,6 @@ class Book:
         title_page = title_with_tags + author_with_tags
         helpers.write_to_file(self.title, title_page)
 
-        return title_page
-
     def create_content_page(self, current_page, chapter_title, body):
 
         current_page_formatted = "<br><b>" + str(current_page) + "</b><br><br>"
