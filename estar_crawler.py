@@ -1,157 +1,115 @@
-import requests
-from bs4 import BeautifulSoup
-import re
 from tqdm import tqdm
 import time
 
-#helpers
-def remove_tags(soup):
-    regex_pattern = re.compile('<.*?>')
-    cleantext = re.sub(regex_pattern, '', soup)
-    return cleantext
+import helpers
+import getters
 
-def remove_brackets(soup):
-    regex_pattern = re.compile('\([^)]*\)')
-    cleantext = re.sub(regex_pattern, '', soup)
-    return cleantext
+class Book:
+    def __init__(self, title, author):
+        self.title = title
+        self.author = author
 
-def write_to_file(title, content):
-    file = title + ".html"
-    with open(file, 'a') as f:
-        f.write(content)
+    def create_title_page(self):
 
-#main functions
-def get_soup(url):
-    page = requests.get(url)
-    soup = BeautifulSoup(page.content, 'html.parser')
-    return soup
+        title_with_tags = "<h1>" + self.title + "</h1>"
+        author_with_tags = "<h2>" + self.author + "</h2>"
 
-def get_author(soup):
-    author = soup.find("a", {"class": "nickname"})
-    author = str(author)
-    author = remove_tags(author)
-    return author
+        title_page = title_with_tags + author_with_tags
+        helpers.write_to_file(self.title, title_page)
 
-def get_title(soup):
-    title = soup.find("h1", {"class": "title"})
-    title= str(title)
-    title = remove_tags(title)
-    return title
+        return title_page
 
-def get_max_page_number(soup):
-    attributes_dictionary = soup.find("input", {"class": "inputText"}).attrs
-    max_page_number = attributes_dictionary['max']
-    max_page_number = int(max_page_number)
-    return max_page_number
+    def create_content_page(self, current_page, chapter_title, body):
 
-def get_chapter(soup):
-    chapter_title = soup.find("h1", {"class": "subject"})
-    chapter_title = str(chapter_title)
-    chapter_title = remove_tags(chapter_title)
-    return chapter_title
+        current_page_formatted = "<br><b>" + str(current_page) + "</b><br><br>"
+        helpers.write_to_file(self.title, current_page_formatted)
 
-def get_text_body(soup):
-    body = soup.find("div", {"class": "content -unselectable"})
-    body = str(body)
-    body = remove_tags(body)
-    return body
+        if chapter_title != "None":
+            chapter_title_formatted = "<h3>" + chapter_title + "</h3><br><br>"
+            helpers.write_to_file(self.title, chapter_title_formatted)
 
-def create_title_page(title, author):
+        if body != "None":
+            body_formatted = body.replace('\n', "<br>")
+            helpers.write_to_file(self.title, body_formatted)
 
-    title_with_tags = "<h1>" + title + "</h1>"
-    author_with_tags = "<h2>" + author + "</h2>"
+    def bind_book(self, url):
 
-    title_page = title_with_tags + author_with_tags
-    write_to_file(title, title_page)
+        soup = getters.get_soup(url)
 
-    return title_page
+        html_open = f"""
 
-def create_content_page(title, current_page, chapter_title, body):
+                    <html>
 
-    current_page_formatted = "<br><b>" + str(current_page) + "</b><br><br>"
-    write_to_file(title, current_page_formatted)
+                    <head>
 
-    if chapter_title != "None":
-        chapter_title_formatted = "<h3>" + chapter_title + "</h3><br><br>"
-        write_to_file(title, chapter_title_formatted)
+                    <title>{self.title} - {self.author}</title>
+                             
+                    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
 
-    if body != "None":
-        body_formatted = body.replace('\n', "<br>")
-        write_to_file(title, body_formatted)
+                    </head>
+                    
+                    <body>
+                    <div class="container-fluid">
+                      <div class="row">
+                        <div class="col-sm-3">
+                        </div>                  
+                        <div class="col-sm-6">
+                        <center>
 
-def bind_book(url):
+                       """
 
-    soup = get_soup(url)
-
-    title = get_title(soup)
-    author = get_author(soup)
-
-    html_open = f"""
-
-                <html>
-
-                <head>
-
-                <title>{title} - {author}</title>
-                         
-                <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
-
-                </head>
-                
-                <body>
-                <div class="container-fluid">
-                  <div class="row">
-                    <div class="col-sm-3">
-                    test
-                    </div>                  
-                    <div class="col-sm-6">
-                    <center>
-
-                   """
-
-    html_close = """
-                    </center>
+        html_close = """
+                        </center>
+                        </div>
+                        <div class="col-sm-6">
+                        </div>
+                      </div>
                     </div>
-                    <div class="col-sm-6">
-                    test
-                    </div>
-                  </div>
-                </div>
-            </body>
-        </html>
-                """
+                </body>
+            </html>
+                    """
 
-    #write initial html
-    write_to_file(title, html_open)
+        #write initial html
+        helpers.write_to_file(self.title, html_open)
 
-    #write the title page
-    create_title_page(title, author)
+        #write the title page
+        self.create_title_page()
 
-    current_page = 1
-    page_url = url + "/viewer?page=" + str(current_page)
-    soup = get_soup(page_url)
+        current_page = 1
+        page_url = url + "/viewer?page=" + str(current_page) #page 1
+        soup = getters.get_soup(page_url)
 
-    max_page_number = get_max_page_number(soup)
+        max_pages = getters.get_max_page_number(soup)
+        
+        #progress bar
+        progress_bar = tqdm(total=max_pages)
+        
+        #traverse through all pages
+        while(current_page <= max_pages):
+            page_url = url + "/viewer?page=" + str(current_page)
+            soup = getters.get_soup(page_url)
 
-    progress_bar = tqdm(total=max_page_number)
+            chapter_title = getters.get_chapter(soup)
+            body = getters.get_text_body(soup)
 
-    while(current_page <= max_page_number):
-        page_url = url + "/viewer?page=" + str(current_page)
-        soup = soup = get_soup(page_url)
+            self.create_content_page(current_page, chapter_title, body)
 
-        chapter_title = get_chapter(soup)
-        body = get_text_body(soup)
+            current_page += 1
 
-        create_content_page(title, current_page, chapter_title, body)
+            #update progress bar
+            progress_bar.update(1)
+            time.sleep(1)
 
-        current_page += 1
-        progress_bar.update(1)
-        time.sleep(1)
-
-    progress_bar.close()
-    write_to_file(title, html_close)
+        progress_bar.close()
+        helpers.write_to_file(self.title, html_close)
 
 
-url = "https://estar.jp/novels/17940303"
+url = "https://estar.jp/novels/25570755"
+soup = getters.get_soup(url)
 
-bind_book(url)
+title = getters.get_title(soup)
+author = getters.get_author(soup)
+
+book = Book(title, author)
+
+book.bind_book(url)
