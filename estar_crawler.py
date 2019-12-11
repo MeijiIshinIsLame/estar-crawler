@@ -67,7 +67,7 @@ def create_title_page(title, author):
 
 def create_content_page(title, current_page, chapter_title, body):
 
-    current_page_formatted = "<b>" + str(current_page) + "</b><br><br>"
+    current_page_formatted = "<br><b>" + str(current_page) + "</b><br><br>"
     write_to_file(title, current_page_formatted)
 
     if chapter_title != "None":
