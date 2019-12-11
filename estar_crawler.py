@@ -5,6 +5,7 @@ import helpers
 import getters
 
 class Book:
+    
     def __init__(self, title, author):
         self.title = title
         self.author = author
@@ -86,6 +87,7 @@ class Book:
         
         #traverse through all pages
         while(current_page <= max_pages):
+            
             page_url = url + "/viewer?page=" + str(current_page)
             soup = getters.get_soup(page_url)
 
