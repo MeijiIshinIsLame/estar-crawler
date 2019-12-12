@@ -14,7 +14,8 @@ if __name__ == "__main__":
     title = getters.get_title(soup)
     author = getters.get_author(soup)
     path = path + title
-    
+
+    #check is file already exists
     try:
         os.remove(path + ".html")
     except OSError:
