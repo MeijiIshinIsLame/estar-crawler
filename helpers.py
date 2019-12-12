@@ -11,10 +11,7 @@ def remove_brackets(soup):
     cleantext = re.sub(regex_pattern, '', soup)
     return cleantext
 
-def write_to_file(title, content):
-    file = title + ".html"
+def write_to_file(path, content):
+    file = path + ".html"
     with open(file, 'a') as f:
         f.write(content)
-
-def check_for_file(path):
-    return os.path.isdir(path)

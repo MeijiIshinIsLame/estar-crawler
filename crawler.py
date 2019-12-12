@@ -6,9 +6,10 @@ import getters
 
 class Book:
     
-    def __init__(self, title, author):
+    def __init__(self, title, author, path):
         self.title = title
         self.author = author
+        self.path = path
 
     def create_title_page(self):
 
@@ -16,20 +17,20 @@ class Book:
         author_with_tags = "<h2>" + self.author + "</h2>"
 
         title_page = title_with_tags + author_with_tags
-        helpers.write_to_file(self.title, title_page)
+        helpers.write_to_file(self.path, title_page)
 
     def create_content_page(self, current_page, chapter_title, body):
 
-        current_page_formatted = "<br><b>" + str(current_page) + "</b><br><br>"
-        helpers.write_to_file(self.title, current_page_formatted)
+        current_page_formatted = "<br><br><b>" + str(current_page) + "</b><br><br>"
+        helpers.write_to_file(self.path, current_page_formatted)
 
         if chapter_title != "None":
             chapter_title_formatted = "<h3>" + chapter_title + "</h3><br><br>"
-            helpers.write_to_file(self.title, chapter_title_formatted)
+            helpers.write_to_file(self.path, chapter_title_formatted)
 
         if body != "None":
             body_formatted = body.replace('\n', "<br>")
-            helpers.write_to_file(self.title, body_formatted)
+            helpers.write_to_file(self.path, body_formatted)
 
     def bind_book(self, url):
 
@@ -69,7 +70,7 @@ class Book:
                     """
 
         #write initial html
-        helpers.write_to_file(self.title, html_open)
+        helpers.write_to_file(self.path, html_open)
 
         #write the title page
         self.create_title_page()
@@ -101,15 +102,4 @@ class Book:
             time.sleep(1)
 
         progress_bar.close()
-        helpers.write_to_file(self.title, html_close)
-
-
-url = "https://estar.jp/novels/25570755"
-soup = getters.get_soup(url)
-
-title = getters.get_title(soup)
-author = getters.get_author(soup)
-
-book = Book(title, author)
-
-book.bind_book(url)
+        helpers.write_to_file(self.path, html_close)
